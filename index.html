@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hello jQuery</title>
+
+
+</head>
+
+<body>
+
+    <form id="guardarEstudiante" method="post">
+
+        <input type="text" id='primerNombre' />
+        <input type="text" id='segundoNombre' />
+        <input type="text" id='correo' />
+
+        <button type="submit">Guardar</button>
+
+    </form>
+
+    <table id="table">
+        <tr>
+            <th>Primer nombre </th>
+            <th>Segundo nombre</th>
+            <th>Email </th>
+            <th>editar</th>
+            <th>eliminar</th>
+        </tr>
+
+
+    </table>
+
+
+
+
+
+</body>
+
+</html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+
+<script>
+
+
+    var frm = $('#guardarEstudiante');
+
+    frm.submit(function (e) {
+        e.preventDefault();
+        var primerNombre = $("#primerNombre").val();
+        var segundoNombre = $("#segundoNombre").val();
+        var email = $("#correo").val();
+
+        var estudiante = new Object();
+        estudiante.firstname = primerNombre;
+        estudiante.lastname = segundoNombre;
+        estudiante.email = email;
+        console.log("Estudiante: " + estudiante)
+        saveStudent(estudiante);
+        console.log("Estudiantes...")
+        console.log(getStudents());
+
+    });
+
+
+    $(document).ready(function () {
+
+        getStudents();
+        getStudentById(1);
+        var students = getStudents();
+        
+        console.log("Estudiantes TABLA: " + students)
+        $('#table').DataTable({
+            "columnDefs": [{
+                "targets": 4,
+                "data": JSON.stringify(students), //Replace JSONarray with data source URL
+                "render": function (data, type, row, meta) {
+                    console.log(meta);
+                    return type === 'display' && data.length > 40 ?
+                        '<span title="' + data.firstname +  '">' + data.substr(0, 38) + 'row'+ row.firstname +'...</span>' :
+                        data;
+                }
+            }]
+        });
+
+    });
+    
+    
+        function getStudents() {
+            var response;                
+            $.ajax({
+                contentType: "json",
+                dataType: "json",
+                url: "http://localhost:8080/api/student"
+            }).then(function (data) {
+                response = data._embedded.studentResources;
+                console.log('Consumiendo');
+                console.log(response);
+
+            });
+            return response;
+        }
+
+
+        function getStudentById(id) {
+            $.ajax({
+                url: "http://localhost:8080/api/student/" + id
+            }).then(function (data) {
+
+                console.log('Consumiendo por id');
+                console.log(data);
+            });
+        }
+
+        function saveStudent(estudiante) {
+
+            console.log(estudiante);
+            $.ajax({
+                url: 'http://localhost:8080/api/student/',
+                type: 'POST',
+                dataType: 'json',
+                contentType: "application/json",
+                data: JSON.stringify(estudiante),
+                success: function (data, textStatus, xhr) {
+                    console.log(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.log('Error in Operation');
+                    console.log(errorThrown);
+                    console.log(xhr);
+                }
+            });
+
+
+
+        }
+
+
+
+
+        function updateStudent(id, estudiante) {
+
+            console.log(estudiante);
+            $.ajax({
+                url: 'http://localhost:8080/api/student/' + id,
+                type: 'PUT',
+                dataType: 'json',
+                contentType: "application/json",
+                data: JSON.stringify(estudiante),
+                success: function (data, textStatus, xhr) {
+                    console.log(data);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.log('Error in Operation');
+                    console.log(errorThrown);
+                    console.log(xhr);
+                }
+            });
+
+        }
+
+
+</script>
